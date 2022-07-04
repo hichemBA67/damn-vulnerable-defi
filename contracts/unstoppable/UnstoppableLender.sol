@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
+pragma solidity >=0.6.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -37,6 +36,7 @@ contract UnstoppableLender is ReentrancyGuard {
         require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
 
         // Ensured by the protocol via the `depositTokens` function
+        // HERE IS THE BUG
         assert(poolBalance == balanceBefore);
         
         damnValuableToken.transfer(msg.sender, borrowAmount);
