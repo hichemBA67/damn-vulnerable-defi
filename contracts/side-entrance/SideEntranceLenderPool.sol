@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.6.0 <0.9.0;
 import "@openzeppelin/contracts/utils/Address.sol";
 
 interface IFlashLoanEtherReceiver {
@@ -32,6 +32,7 @@ contract SideEntranceLenderPool {
         
         IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
 
+        // The weekness is here
         require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");        
     }
 }

